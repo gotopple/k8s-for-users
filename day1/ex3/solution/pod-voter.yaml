@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: voter
+  namespace: workshop-day1-solutions
+  labels:
+    app: voter
+    version: v1
+spec:
+  hostAliases:
+   - ip: "127.0.0.1"
+     hostnames:
+      - "redis"
+  containers:
+   - name: voter
+     image: dockersamples/examplevotingapp_vote:before
+     ports:
+      - containerPort: 80 
+   - name: redis
+     image: redis:alpine
+     ports:
+      - containerPort: 6379 # should never be exposed

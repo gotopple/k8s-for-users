@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: workshop-day1-solutions
+spec:
+  selector:
+    app: data-pipeline
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: workshop-day1-solutions
+spec:
+  selector:
+    app: data-pipeline
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-pipeline
+  namespace: workshop-day1-solutions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-pipeline
+  template:
+    metadata:
+      labels:
+        app: data-pipeline
+        version: v1
+    spec:
+      hostAliases:
+       - ip: "127.0.0.1"
+         hostnames:
+          - "redis"
+          - "db"
+          - "worker"
+      containers:
+       - name: redis
+         image: redis:alpine
+         volumeMounts:
+          - mountPath: /data
+            name: redis-data
+         ports:
+          - containerPort: 6379
+       - name: db
+         image: postgres:9.4
+         volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: pg-data
+       - name: worker
+         image: dockersamples/examplevotingapp_worker
+      volumes:
+       - name: pg-data
+         emptyDir: {}
+       - name: redis-data
+         emptyDir: {}

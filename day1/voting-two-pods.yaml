@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: voter
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voter-svc
+spec:
+  type: NodePort
+  selector:
+    app: voter
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      nodePort: 30000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: results-svc
+spec:
+  type: NodePort
+  selector:
+    app: voting-core
+    version: v1
+  ports:
+    - protocol: TCP
+      port: 80
+      nodePort: 30001
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: voting-core
+  labels:
+    app: voting-core
+    version: v1
+spec:
+  securityContext:
+    fsGroup: 412
+  hostAliases:
+   - ip: "127.0.0.1"
+     hostnames:
+      - "db"
+      - "result"
+      - "worker"
+      - "visualizer"
+  containers:
+   - name: db
+     image: postgres:9.4
+     volumeMounts:
+      - mountPath: /var/lib/postgresql/data
+        name: db-data
+   - name: result
+     image: dockersamples/examplevotingapp_result:before
+     ports:
+      - containerPort: 80 # should be public 5001
+   - name: worker
+     image: dockersamples/examplevotingapp_worker
+   - name: visualizer
+     image: dockersamples/visualizer:stable
+     ports:
+      - containerPort: 8080 # should be public 8080
+     volumeMounts:
+      - name: dockersock
+        mountPath: "/var/run/docker.sock"
+  volumes:
+   - name: db-data
+     emptyDir: {}
+   - name: dockersock
+     hostPath:
+       path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: voter
+  labels:
+    app: voter
+    version: v1
+spec:
+  securityContext:
+    fsGroup: 412
+  hostAliases:
+   - ip: "127.0.0.1"
+     hostnames:
+      - "vote"
+      - "redis"
+  containers:
+   - name: vote
+     image: dockersamples/examplevotingapp_vote:before
+     ports:
+      - containerPort: 80 # should be public 5000
+   - name: redis
+     image: redis:alpine
+     ports:
+      - containerPort: 6379 # should never be exposed
+  volumes:
+   - name: db-data
+     emptyDir: {}
+   - name: dockersock
+     hostPath:
+       path: /var/run/docker.sock

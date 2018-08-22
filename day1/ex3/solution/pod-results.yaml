@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: result
+  namespace: workshop-day1-solutions
+  labels:
+    app: result
+    version: v1
+spec:
+  hostAliases:
+   - ip: "127.0.0.1"
+     hostnames:
+      - "db"
+  containers:
+   - name: db
+     image: postgres:9.4
+     volumeMounts:
+      - mountPath: /var/lib/postgresql/data
+        name: db-data
+   - name: result
+     image: dockersamples/examplevotingapp_result:before
+     ports:
+      - containerPort: 80 
+   - name: worker
+     image: dockersamples/examplevotingapp_worker
+  volumes:
+   - name: db-data
+     emptyDir: {}
