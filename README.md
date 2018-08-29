@@ -22,7 +22,17 @@ This must be on your host operating system (Windows or MacOS) not on a virtual m
 
 ##### 4. Pre-pull several Docker images
 
-    docker pull
+    docker pull \
+      redis:alpine \
+      alpine:3.8 \
+      dockersamples/visualizer:stable \
+      dockersamples/examplevotingapp_worker:latest \
+      dockersamples/examplevotingapp_result:before \
+      dockersamples/examplevotingapp_vote:before \
+      dockersamples/examplevotingapp_result:after \
+      dockersamples/examplevotingapp_vote:after \
+      postgres:9.4 \
+      k8s.gcr.io/kubernetes-dashboard-amd64:v1.10.0
 
 ##### 5. Email me
 
