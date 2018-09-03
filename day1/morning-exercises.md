@@ -6,6 +6,8 @@ This morning you're going to learn with a classic Docker example application. Th
 
 The following exercises will walk you through service deployment and life cycle management using Kubernetes resources and declarative workflows.
 
+If you're not familiar with YAML then you might want to pull up this [YAML Primer](./YAML_Primer.md) in another tab.
+
 ## Pods and Services
 
 Kubernetes is a database for modeling operations resources. Those resources fall into categories like "workload," "load balancing," "configuration," "storage," "cluster," and "metadata." These exercises introduce the Pod. A pod is the smallest schedulable workload resource in Kubernetes. Unlike other orchestrators and a Kubernetes pod can have one or more containers. 
@@ -20,9 +22,9 @@ Before you can get started working with Pods you need to know about their struct
 
 Run `kubectl explain pod` to see the top-level structure of a Pod. The `Status` property is special in Kubernetes and is read-only. When you're defining a Pod with YAML each of the listed properties (with the exception of Status) should be specified. You should explain the `pod.spec` and `pod.spec.containers` to see what properties are available.
 
-Kubernetes defaults to showing the earliest version of a resource available on the platform. You must specify the `--api-version` flag to lookup any specific version of a resource. For example, `kubectl explain po --api-version v1`. You can determine the API versions available on your platform by running the `kubectl api-versions` subcommand.
+Kubernetes defaults to showing the earliest version of a resource available on the platform. You must specify the `--api-version` flag to lookup any specific version of a resource.
 
-Use your new knowledge to write a v1 Pod that runs Redis in a container. The Pod should be configured as follows:
+Use `kubectl explain --api-version v1 pod`, `kubectl explain --api-version v1 pod.spec` and `kubectl explain --api-version v1 pod.spec.containers` to write a **v1 Pod** that runs Redis in a container. The Pod should be configured as follows:
 
 * Pod name: `redis`
 * Pod label key: `app` and value: `redis`
@@ -144,7 +146,7 @@ Since you're running these examples on your local machine and a single-node Kube
 Create Service resource definitions according to the following table:
 
 | Service name  | Publish Port | Internal (y/n) | Selector |
-| ------------- |:-------------:|-----:|
+| ------------- |:------------:|:--------------:|---------:|
 | redis | 6379/TCP | y | `app: voter` |
 | vote | 30000/TCP | n | `app: voter` |
 | result | 30001/TCP | n | `app: results` |
