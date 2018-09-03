@@ -102,7 +102,7 @@ You're going to create two pods. For now it might be easier to put them both in 
 Should be named `voter` and have labels `app: voter` and `version: v1`. The pod spec should include the following container definitions:
 
 | Container name  | Port | Image |
-| ------------- |:-------------:| -----:|
+| ---__---------- |:----:| -----:|
 | redis | 6379 | `redis:alpine` |
 | vote | 80 | `dockersamples/examplevotingapp_vote:before` |
 
@@ -110,13 +110,15 @@ When software in this pod goes to resolve the name, "redis" it should get "127.0
 
 ##### Pod 2: Results
 
-Should be named `results` and have labels `app: results` and `version: v1`. The pod spec should include the following container definitions:
+Should be named `results` and have labels `app: results` and `version: v1`. The pod spec should include the following volume definitions:
 
-| Container name  | Port | Image |
-| ------------- |:-------------:| -----:|
-| db | 5432 | `postgres:9.4` |
-| worker | NA | `dockersamples/examplevotingapp_worker` |
-| result | 80 | `dockersamples/examplevotingapp_result:before` |
+And the following container definitions:
+
+| Container name  | Port | VolumeMounts | Image |
+| --------------- |:----:|:------------:| -----:|
+| db | 5432 | `name: db-data` `mountpoint: /var/lib/postgresql/data` | `postgres:9.4` |
+| worker | NA |  | `dockersamples/examplevotingapp_worker` |
+| result | 80 |  | `dockersamples/examplevotingapp_result:before` |
 
 When software in this pod goes to resolve the name, "db" it should get "127.0.0.1" as the result.
 
@@ -175,7 +177,7 @@ The next resource you'll work with is called a ReplicaSet.
 
 ReplicaSets provide replica and resilience controls. They create Pod resources on your behalf according to the template and other properties you provide in the ReplicaSet spec. If a Pod under management of a ReplicaSet is deleted or fails then the ReplicaSet will take care of replacing it and maintaining the realized desired state of the system.
 
-Note: there is another resource type called a ReplicationController that is deprecated. New users and workloads should use ReplicaSets or other higher-level resources.
+**Note**: there is another resource type called a ReplicationController that is deprecated. New users and workloads should use ReplicaSets or other higher-level resources.
 
 Now create a new file to describe your stack in terms of ReplicaSets and Services instead of raw Pod resources. Call the new file `voting-rs.yaml`. Include all of the ReplicaSet and Service definitions in that same file.
 
@@ -228,7 +230,7 @@ ReplicaSets maintain a desired number of Pods, but don't provide any deployment 
 
 Product management issued you a ticket and they want to roll out a new poll. They'd like to stop asking people about Cats vs. Dogs and focus more on the enterprise software crowd. They want to poll Java vs. .NET. Luckily, that software has already been written and is available simply by updating the image tag.
 
-With your solution from exercise 4 running, update your definition file and change the images used for the voter and results containers from the `:before` tag to the `:after` tag. When you've updated both Pod definitions you're going to trigger a deployment using the `kubectl apply` command.
+**With your solution from exercise 4 running**, update your definition file and change the images used for the voter and results containers from the `:before` tag to the `:after` tag. When you've updated both Pod definitions you're going to trigger a deployment using the `kubectl apply` command.
 
 Once the changes have been applied reload [localhost:30000](http://localhost:30000) and [localhost:30001](http://localhost:30001). Did you see where the new poll came up? No? What if you refresh again? Maybe wait a few seconds and try again. No? You might notice that the vote page is being served by the same Pod as before. It is almost like no changes were made to the running software.
 
