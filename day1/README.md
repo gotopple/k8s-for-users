@@ -302,7 +302,6 @@ spec:
 Create the logical service definitions, and then apply the resource definitions under `v1`:
 
 ```
-kubectl apply -f ./ex6/services.yaml
 kubectl apply -f ./ex6/v1
 ```
 
