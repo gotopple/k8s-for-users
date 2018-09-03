@@ -6,7 +6,7 @@ This morning you're going to learn with a classic Docker example application. Th
 
 The following exercises will walk you through service deployment and life cycle management using Kubernetes resources and declarative workflows.
 
-If you're not familiar with YAML then you might want to pull up this [YAML Primer](./YAML_Primer.md) in another tab.
+If you're not familiar with YAML then you might want to pull up this [YAML Primer](../YAML_Primer.md) in another tab.
 
 ## Pods and Services
 
@@ -67,7 +67,7 @@ In the output from describe you'll see associated metadata, relationships with o
 
 You might be familiar with Docker already and be used to the idea of execing a command in a running container. Well Kubernetes is built on top of Docker or other similar container technology. You can see the redis container in your Pod by running `docker ps`.
 
-You could exec a command in the redis container, but in production you'd only be able to do that from the cluster node where the container is running. That won't scale well. Instead use the `kbuectl exec` subcommand. It is similar in form and function but since Pods can contain multiple containers it does require a bit of refinement. Use the following command to define and increment a counter in your redis instance:
+You could exec a command in the redis container, but in production you'd only be able to do that from the cluster node where the container is running. That won't scale well. Instead use the `kubectl exec` subcommand. It is similar in form and function but since Pods can contain multiple containers it does require a bit of refinement. Use the following command to define and increment a counter in your redis instance:
 
 ```
 kubectl exec redis -i -t -- redis-cli incr my-training-counter
@@ -87,7 +87,7 @@ If you need to work with a Pod in a different namespace you just need to specify
 kubectl exec redis -c redis -i -t --namespace workshop-day1-solutions -- redis-cli incr my-training-counter
 ```
 
-When you're finished having fun with your redis instance tear down your Pod with the `kubectl delete` subcommand.
+When you're finished having fun with your redis instance tear down your Pod with the `kubectl delete` subcommand. Remember, you specify the resources to delete by pointing to the resource definition files (the `-f` flag).
 
 ### Exercise 3: Compose to Kubernetes Conversion with Pods and Services
 
@@ -246,8 +246,7 @@ Delete the result Pod to flip that side of the app as well.
 
 This was a dangerous flip operation. You could have done a more seamless migration here by creating new ReplicaSet definitions with an increased `version` label and carefully adjusting the `replias` property on each. But either way manipulating these resources manually is error prone.
 
-__ manual rollout orchestration sucks, use deployments
-__ kubectl delete -f ./ex5
+**Before moving on** cleanup all of the pods, replica sets, and services that you created for this exercise.
 
 ### Exercise 6: Deployments
 
