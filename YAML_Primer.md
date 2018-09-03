@@ -14,6 +14,8 @@ The default scope of a document is a single file or stream. However a single doc
 
 Any line can contain a comment at the end of the line. Comments are marked by a " #" (space+hash) character sequence. Any characters that follow until the end of the line are ignored by the parser.
 
+**Empty lines are just fine.**
+
 ## Maps, Lists, and Scalars
 
 YAML uses three types of data and two styles, "block" and "flow." Flow collections are specified similar to collection literals in JavaScript and other languages. The block style is more common. 
