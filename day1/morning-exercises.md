@@ -102,7 +102,7 @@ You're going to create two pods. For now it might be easier to put them both in 
 Should be named `voter` and have labels `app: voter` and `version: v1`. The pod spec should include the following container definitions:
 
 | Container name  | Port | Image |
-| ---__---------- |:----:| -----:|
+| --------------- |:----:| -----:|
 | redis | 6379 | `redis:alpine` |
 | vote | 80 | `dockersamples/examplevotingapp_vote:before` |
 
