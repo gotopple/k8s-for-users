@@ -110,7 +110,7 @@ When software in this pod goes to resolve the name, "redis" it should get "127.0
 
 ##### Pod 2: Results
 
-Should be named `results` and have labels `app: results` and `version: v1`. The pod spec should include the following volume definitions:
+Should be named `results` and have labels `app: results` and `version: v1`. This time use a volume to isolate the database state. The pod spec should include the following volume definitions:
 
 | Name  | EmptyDir |
 | --------------- |:----:|
@@ -165,7 +165,7 @@ Once you're done startup your app with the `kubectl apply` command.
 
 Poll the resources a few times with `kubectl get po` and `kubectl get svc`. When all of the resources are ready you should be able to load up the voting and results apps in your web browser by navigating to [localhost:30000](http://localhost:30000) and [localhost:30001](http://localhost:30001) respectively. 
 
-Votes cast in one window should be reflected in the other shortly. 
+Votes cast in one window should be reflected in the other shortly.
 
 If you're running into trouble you can checkout a solution under `ex3/solution` or just start up the solution stack with `kubectl apply -f ex3/solution`. That stack uses ports 31000 and 31001 respectively.
 
@@ -250,26 +250,144 @@ This was a dangerous flip operation. You could have done a more seamless migrati
 
 ### Exercise 6: Deployments
 
-__ examine ./ex6/v1/voter.yaml
-__ kubectl apply -f ./ex6/services.yaml
-__ kubectl apply -f ./ex6/v1
-__ kubectl get deploy
-__ kubectl describe deploy voter
-__ note: deployment resources are watched by a controller that manages replicaset resources, which in turn are watched by the replicaset controller to realize pod resources
-__ kubectl get rs
-__ kubectl get po
-__ Go vote http://localhost:30000
-__ Go see results http://localhost:30001
-__ kubectl apply -f ./ex6/v2
-__ Go vote http://localhost:30000 -> see new poll
-__ Go see results http://localhost:30001 -> see new results
-__ painful that view applications are deployed along side state
-__ examine ./ex6/v3/data.yaml
-__ kubectl apply -f ./ex6/v3
-__ no you could update voter and results without disturbing the data pipline
-__ kubectl get endpoints
+Kubernetes provides another resource called a `Deployment`. Deployments describe a workload (a pod template and a desired number of replicas) as well as parameters for performing the actual deployment and rollback orchestration.
 
-## Managing Persistent State
+You can use Deployment resources to describe rolling updates, or recreate deployments and tune the typical parameters associated with those deployment methods. See details by running `kubectl explain --api-version apps/v1 deployment.spec`, and `kubectl explain --api-version apps/v1 deployment.spec.strategy`.
 
-## Jobs and ConfigMaps
+Instead of writing your own Deployment spec take a moment to examine the provided solutions under `ex6/v1`. Consider the new `voter` Deployment resource.
+
+```
+apiVersion: apps/v1
+
+# Note that this is a Deployment resource, but that the spec only
+# includes the desired replica count and pod template. No deployment
+# options are included. This Deployment reosurce will use the defaults.
+kind: Deployment
+metadata:
+  name: voter
+  namespace: workshop-day1-solutions
+spec:
+  # The described pods are stateful and only route votes to the
+  # pod-local redis instance. Running multiple replicas would
+  # create a federated set with no linkage.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voter
+  template:
+    metadata:
+      labels:
+        app: voter
+        version: v1
+    spec:
+      # This is a nice little hack that will tell the applications
+      # in this pod to look to localhost when resolving  the redis
+      # or vote names (instead of doing a full DNS lookup).
+      hostAliases:
+       - ip: "127.0.0.1"
+         hostnames:
+          - "vote"
+          - "redis"
+      containers:
+       - name: vote
+         image: dockersamples/examplevotingapp_vote:before
+         ports:
+          - containerPort: 80   # purely informational
+       - name: redis
+         image: redis:alpine
+         ports:
+          - containerPort: 6379 # purely informational
+```
+
+Create the logical service definitions, and then apply the resource definitions under `v1`:
+
+```
+kubectl apply -f ./ex6/services.yaml
+kubectl apply -f ./ex6/v1
+```
+
+Specifying the namespace for every command is going to be painful. Instead change your kubectl config to set the current namespace to `workshop-day1-solutions` with the following command (if you're not using Docker for Desktop then you'll need to lookup your current context name - see the instructor):
+
+```
+kubectl config set-context docker-for-desktop --namespace workshop-day1-solutions
+```
+
+Once you've launched the stack take a moment to examine what you've launched. Get the Deployment resources and describe one of them:
+
+```
+kubectl get deploy
+kubectl describe deploy voter # Describe the voter Deployment
+```
+
+The description data for the `voter` Deployment will have a section that describes the current replica status and rollout configuration. 
+
+```
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+```
+
+Deployment resources are watched by a controller that manages ReplicaSet resources. Those ReplicaSets are watched by the ReplicaSet Controller who manages Pods. You can list and describe those ReplicaSet and Pod resources directly:
+
+```
+kubectl get rs
+kubectl get po
+```
+
+With the application running [go vote](http://localhost:31000) and [view the results](http://localhost:31001). The running poll should be the original version: Cats v Dogs.
+
+Now, to perform an update using Deployment resources we need only change the Deployment resource definitions. Inspect the updated definitions under `./ex6/v2` and apply the changes: `kubectl apply -f ./ex6/v2`
+
+The apply command will determine which resources have changed and update the resources appropriately. The Kubernetes controller responsible for watching Deployment resources will see that those resources have changed and execute the deployment workflow as configured.
+
+At this point you should be able to refresh [the vote page](http://localhost:31000) and [the results page](http://localhost:31001) as see that the poll has switched to Java v .NET (if it hasn't yet give it a few moments and refresh again). 
+
+If you describe the `voter` Deployment again you'll be able to see the events that were triggered by the change.
+
+```
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  52s   deployment-controller  Scaled up replica set voter-cf8cc565b to 1
+  Normal  ScalingReplicaSet  45s   deployment-controller  Scaled down replica set voter-79dbcf7549 to 0
+```
+
+The deployment-controller created a new ReplicaSet with an updated Pod template then scaled that up to 1 replica, and after it became ready, scaled down the old ReplicaSet.
+
+This is much easier than doing all of this by hand. The Kubernetes extensibility model makes it possible to build all sort of higher-level abstractions to simplify operational procedures. Entire frameworks (like the Operator framework) exist to make building those controllers simple.
+
+But despite this enhanced operational experience, you might have noticed that your previous votes were lost during the deployment. The system state is still scoped to a specific Pod and the database is deployed in the same Pod as the front-end applications.
+
+Take this opportunity to refactor the Deployment based solution in `./ex6/v2` into three Deployment resources. 
+
+| Deployment Name | Migrated Pods |
+|-----------------|---------------|
+| voting-result | voting-result |
+| voter | voter |
+| data-pipeline | worker, redis, db |
+
+**Hints**:
+
+* Make sure to remove the `hostAliases` from the `voter` and `voting-result` Pod templates.
+* The data-pipeline Pod will still need `hostAliases` for `redis` and `db` so that the `worker` container can discover those inside the Pod.
+* In the old architecture the `db` container was co-located with the `worker` and `results` containers so it never needed to be exposed as a Service. You'll need to build a new Service so that the application in the `results` container can reach it.
+* Make sure to put your new resource definitions in the same namespace as the old ones, `workshop-day1-solutions`.
+
+When you're ready, compare your work with the solutions under `./ex6/v3`. The `data.yaml` file will be particularly interesting. This solution includes Service resource definitions in the same files as the associated Deployment resources.
+
+When you're ready, rollout the new changes by running: `kubectl apply -f ./ex6/v3`. And checkout the Deployment events: `kubectl describe deploy voter`. You should see and event list like the following:
+
+```
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  19m   deployment-controller  Scaled up replica set voter-79dbcf7549 to 1
+  Normal  ScalingReplicaSet  17m   deployment-controller  Scaled up replica set voter-cf8cc565b to 1
+  Normal  ScalingReplicaSet  17m   deployment-controller  Scaled down replica set voter-79dbcf7549 to 0
+  Normal  ScalingReplicaSet  15m   deployment-controller  Scaled up replica set voter-659db78f67 to 1
+  Normal  ScalingReplicaSet  15m   deployment-controller  Scaled down replica set voter-cf8cc565b to 0
+```
+
+Again, you can see the deployment-controller orchestrating the ReplicaSet changes. Now you should be able to independently change the `voting-results` and `voter` Deployment resources without losing state in the `data-pipeline` Pods. This is ofcourse a fragile configuration. If the data-pipeline Pod is lost then the `emptyDir` volumes (and the state they contain) will be lost as well. You'll learn to work with Persistent State in tomorrow's session.
 

@@ -1,9 +1,16 @@
 apiVersion: apps/v1
+
+# Note that this is a Deployment resource, but that the spec only 
+# includes the desired replica count and pod template. No deployment
+# options are included. This Deployment reosurce will use the defaults.
 kind: Deployment
 metadata:
   name: voter
   namespace: workshop-day1-solutions
 spec:
+  # The described pods are stateful and only route votes to the 
+  # pod-local redis instance. Running multiple replicas would 
+  # create a federated set with no linkage.
   replicas: 1
   selector:
     matchLabels:
@@ -14,6 +21,9 @@ spec:
         app: voter
         version: v1
     spec:
+      # This is a nice little hack that will tell the applications
+      # in this pod to look to localhost when resolving  the redis
+      # or vote names (instead of doing a full DNS lookup).
       hostAliases:
        - ip: "127.0.0.1"
          hostnames:
@@ -23,8 +33,8 @@ spec:
        - name: vote
          image: dockersamples/examplevotingapp_vote:before
          ports:
-          - containerPort: 80 # should be public 5000
+          - containerPort: 80   # purely informational
        - name: redis
          image: redis:alpine
          ports:
-          - containerPort: 6379 # should never be exposed
+          - containerPort: 6379 # purely informational
