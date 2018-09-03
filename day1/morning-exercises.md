@@ -112,6 +112,10 @@ When software in this pod goes to resolve the name, "redis" it should get "127.0
 
 Should be named `results` and have labels `app: results` and `version: v1`. The pod spec should include the following volume definitions:
 
+| Name  | EmptyDir |
+| --------------- |:----:|
+| db-data | `{}`` | 
+
 And the following container definitions:
 
 | Container name  | Port | VolumeMounts | Image |
