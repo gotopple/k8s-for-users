@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traceroute-intel
+  namespace: workshop-day2-solutions
+spec:
+  template:
+    metadata:
+      name: traceroute-intel
+    spec:
+      restartPolicy: OnFailure
+      containers:
+       - name: traceroute
+         image: alpine:3.8
+         # The command is specified using a YAML flow sequence
+         command: ["/bin/sh", "-c", "traceroute -w $(TTW) -m $(MAX_HOPS) $(TARGET)"]
+         # This env is specified using a YAML block sequence of 
+         # variable specification structures.
+         env:
+          - name: TARGET
+            valueFrom:
+              configMapKeyRef:
+                name: target-intel
+                key: target
+          - name: MAX_HOPS
+            valueFrom:
+              configMapKeyRef:
+                name: target-intel
+                key: max-hops
+          - name: TTW
+            valueFrom:
+              configMapKeyRef:
+                name: target-intel
+                key: ttw

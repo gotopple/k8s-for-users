@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: target-google
+  namespace: workshop-day2-solutions
+data:
+  target: google.com
+  max-hops: "15"
+  ttw: "4"

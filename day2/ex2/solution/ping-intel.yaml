@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ping-intel
+  namespace: workshop-day2-solutions
+spec:
+  template:
+    metadata:
+      name: ping-intel
+    spec:
+      restartPolicy: OnFailure
+      containers:
+       - name: ping
+         image: alpine:3.8
+         # The command is specified using a YAML flow sequence
+         command: ["/bin/sh", "-c", "ping -W $(TTW) -w 30 $(TARGET)"]
+         # This env is specified using a YAML block sequence of 
+         # variable specification structures.
+         env:
+          - name: TARGET
+            valueFrom:
+              configMapKeyRef:
+                name: target-intel
+                key: target
+          - name: TTW
+            valueFrom:
+              configMapKeyRef:
+                name: target-intel
+                key: ttw

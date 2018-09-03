@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tracert
+  namespace: workshop-day2-solutions
+spec:
+  template:
+    metadata:
+      name: tracert
+    spec:
+      restartPolicy: OnFailure
+      containers:
+       - name: tracert
+         image: alpine:3.8
+         command: ["traceroute","google.com"]
