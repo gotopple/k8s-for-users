@@ -2,6 +2,14 @@
 
 A workshop by Topple 
 
+Using Kubernetes is a popular and significant subject. This course focuses on declarative skill sets for Kubernetes users or software developers. It covers workload, configuration, networking, and some persistent state resource types. The goal is to help the attendee learn:
+
+* Kubernetes from a user perspective
+* What Kubernetes actually is…
+* Basic resources
+* Workflows and patterns
+* Working with persistent state
+
 ## Prerequisites
 
 See [prerequisites.md](./prerequisites.md)
@@ -14,7 +22,7 @@ See [prerequisites.md](./prerequisites.md)
 
 ## Day 1
 
-See [Day 2 Exercises](./day1)
+See [Day 1 Exercises](./day1)
 
 ## Day 2
 
