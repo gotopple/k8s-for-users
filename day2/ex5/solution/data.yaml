@@ -62,7 +62,7 @@ spec:
          image: redis:alpine
          volumeMounts:
           - mountPath: /data
-            name: redis-data-2
+            name: redis-data
          ports:
           - containerPort: 6379
        - name: db
@@ -72,15 +72,12 @@ spec:
                    value: /var/lib/postgresql/data/pgdata
          volumeMounts:
           - mountPath: /var/lib/postgresql/data/pgdata
-            name: pg-data-2
+            name: pg-data
        - name: worker
          image: dockersamples/examplevotingapp_worker
-       - name: shell
-         image: alpine:3.8
-         command: ["sleep", "9000"]
   volumeClaimTemplates:
    - metadata:
-       name: redis-data-2
+       name: redis-data
      spec:
        accessModes:
          - ReadWriteOnce
@@ -89,7 +86,7 @@ spec:
          requests:
            storage: 1Gi
    - metadata:
-       name: pg-data-2
+       name: pg-data
      spec:
        accessModes:
          - ReadWriteOnce
