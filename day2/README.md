@@ -142,6 +142,73 @@ A [PersistentVolume](https://kubernetes.io/docs/concepts/storage/persistent-volu
 
 ### Exercise 5: Adding Persistent Storage to the Voting App Data Pipeline
 
+Rather than asking you to build the whole stack for this exercise you'll have a starting place that already uses a StatefulSet. Examine `./ex5/data.yaml` to see where the Deployment has been converted to a StatefulSet resource:
+
+```
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: data-pipeline
+  namespace: workshop-day2-solutions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-pipeline
+  serviceName: ss-db
+  template:
+    metadata:
+      labels:
+        app: data-pipeline
+    spec:
+      terminationGracePeriodSeconds: 10
+      hostAliases:
+       - ip: "127.0.0.1"
+         hostnames:
+          - "redis"
+          - "db"
+          - "worker"
+      containers:
+       - name: redis
+         image: redis:alpine
+         volumeMounts:
+          - mountPath: /data
+            name: redis-data
+         ports:
+          - containerPort: 6379
+       - name: db
+         image: postgres:9.4
+         env:
+           - name: PGDATA
+             value: /var/lib/postgresql/data/pgdata
+         volumeMounts:
+          - mountPath: /var/lib/postgresql/data/pgdata
+            name: pg-data
+       - name: worker
+         image: dockersamples/examplevotingapp_worker
+  volumeClaimTemplates:
+   - metadata:
+       name: redis-data
+     spec:
+       accessModes:
+         - ReadWriteOnce
+       storageClassName: "hostpath"
+       resources:
+         requests:
+           storage: 1Gi
+   - metadata:
+       name: pg-data
+     spec:
+       accessModes:
+         - ReadWriteOnce
+       storageClassName: "hostpath"
+       resources:
+         requests:
+           storage: 1Gi
+```
+
+Note the `volumeClaimTemplates` section. This defines two templates that will cause two PersistentVolumes to be created for each Pod replica. Those claims will be on the `hostpath` StorageClass (this might need to be changed to `standard` for minikube users).
+
 __ kubectl apply -f solution-ns.yaml
 __ kubectl apply -f data.yaml
 __ kubectl apply -f results.yaml
