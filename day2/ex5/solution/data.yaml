@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+  namespace: workshop-day2-solutions
+spec:
+  selector:
+    app: data-pipeline
+  ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: workshop-day2-solutions
+spec:
+  selector:
+    app: data-pipeline
+  ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ss-db
+  namespace: workshop-day2-solutions
+spec:
+  selector:
+    app: data-pipeline
+  ports:
+    - protocol: TCP
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: data-pipeline
+  namespace: workshop-day2-solutions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: data-pipeline
+  serviceName: ss-db
+  template:
+    metadata:
+      labels:
+        app: data-pipeline
+    spec:
+      terminationGracePeriodSeconds: 10
+      hostAliases:
+       - ip: "127.0.0.1"
+         hostnames:
+          - "redis"
+          - "db"
+          - "worker"
+      containers:
+       - name: redis
+         image: redis:alpine
+         volumeMounts:
+          - mountPath: /data
+            name: redis-data-2
+         ports:
+          - containerPort: 6379
+       - name: db
+         image: postgres:9.4
+         env:
+                 - name: PGDATA
+                   value: /var/lib/postgresql/data/pgdata
+         volumeMounts:
+          - mountPath: /var/lib/postgresql/data/pgdata
+            name: pg-data-2
+       - name: worker
+         image: dockersamples/examplevotingapp_worker
+       - name: shell
+         image: alpine:3.8
+         command: ["sleep", "9000"]
+  volumeClaimTemplates:
+   - metadata:
+       name: redis-data-2
+     spec:
+       accessModes:
+         - ReadWriteOnce
+       storageClassName: "hostpath"
+       resources:
+         requests:
+           storage: 1Gi
+   - metadata:
+       name: pg-data-2
+     spec:
+       accessModes:
+         - ReadWriteOnce
+       storageClassName: "hostpath"
+       resources:
+         requests:
+           storage: 1Gi
