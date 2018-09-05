@@ -32,7 +32,7 @@ Use `kubectl explain --api-version v1 pod`, `kubectl explain --api-version v1 po
 
 ### Exercise 1B: Introducing Namespaces
 
-Before you launch your Pod take a moment to validate your answer against the provided solution. Compare your answer with an example look at `ex1/solution/redis-pod.yaml`. 
+Before you launch your Pod take a moment to validate your answer against the provided solution. Compare your answer with an example look at `./ex1/solution/redis-pod.yaml`. 
 
 You might notice the inclusion of a metadata field that you likely did not include in your answer: `namespace`.
 
@@ -261,7 +261,7 @@ apiVersion: apps/v1
 
 # Note that this is a Deployment resource, but that the spec only
 # includes the desired replica count and pod template. No deployment
-# options are included. This Deployment reosurce will use the defaults.
+# options are included. This Deployment resource will use the defaults.
 kind: Deployment
 metadata:
   name: voter
@@ -388,5 +388,5 @@ Events:
   Normal  ScalingReplicaSet  15m   deployment-controller  Scaled down replica set voter-cf8cc565b to 0
 ```
 
-Again, you can see the deployment-controller orchestrating the ReplicaSet changes. Now you should be able to independently change the `voting-results` and `voter` Deployment resources without losing state in the `data-pipeline` Pods. This is ofcourse a fragile configuration. If the data-pipeline Pod is lost then the `emptyDir` volumes (and the state they contain) will be lost as well. You'll learn to work with Persistent State in tomorrow's session.
+Again, you can see the deployment-controller orchestrating the ReplicaSet changes. Now you should be able to independently change the `voting-results` and `voter` Deployment resources without losing state in the `data-pipeline` Pods. This is of course a fragile configuration. If the data-pipeline Pod is lost then the `emptyDir` volumes (and the state they contain) will be lost as well. You'll learn to work with Persistent State in tomorrow's session.
 
