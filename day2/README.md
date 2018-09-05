@@ -1,4 +1,4 @@
-# Day 2: Jobs, Persistent State, Configuration, Secrets, and Service Accounts
+# Jobs, Persistent State, Configuration, and Secrets
 
 ## Jobs, ConfigMaps, and Secrets
 
@@ -209,15 +209,24 @@ spec:
 
 Note the `volumeClaimTemplates` section. This defines two templates that will cause two PersistentVolumes to be created for each Pod replica. Those claims will be on the `hostpath` StorageClass (this might need to be changed to `standard` for minikube users).
 
-__ kubectl apply -f solution-ns.yaml
-__ kubectl apply -f data.yaml
-__ kubectl apply -f results.yaml
-__ kubectl apply -f voter.yaml
+Also note that the Pod spec does not define volumes, but instead each item in `volumeMounts` field references volumeClaimTemplates by name.
 
-__ go vote and view the results
+Items in the `volumeClaimTemplates` field have another interesting field called `accessModes`. Access modes describe how the PersistentVolume should be accessed by cluster nodes. A ReadWriteOnce access mode describes a volume that is accessible by only a single node and with read-write permission. StorageClasses that are backed by node-local storage (like `hostpath` or `standard`) are not able to be mounted by multiple nodes, and so an access mode like `ReadWriteMany` is not supported.
+
+Start working through the state management workflow by launching the provided solution:
+
+```
+kubectl apply -f ./ex5/solution/solution-ns.yaml
+kubectl apply -f ./ex5/solution/results.yaml
+kubectl apply -f ./ex5/solution/voter.yaml
+kubectl apply -f ./ex5/solution/data.yaml
+```
+
+Then go and [vote](http://localhost:31000) and load up the [results](http://localhost:31001) page. Register a vote, and verify that the result is reflected on the results page. Next, you're going to make a significant change to the `data-pipeline` Pod. You're going to change the Postgres image.
 
 __ update db to postgres:9.4-alpine
 __ kubectl apply -f data-v2.yaml
+
 __ the results app crashes without retrying database connections so we have to trigger a redeployment, just kill the pod and let the ReplicaSet re-launch it
 __ kubectl delete <the resutls pod>
 
