@@ -22,6 +22,8 @@ See [prerequisites.md](./prerequisites.md)
 
 ## Day 1
 
+Do you need a [YAML Primer](./YAML_Primer.md)?
+
 See [Day 1 Exercises](./day1)
 
 ## Day 2
