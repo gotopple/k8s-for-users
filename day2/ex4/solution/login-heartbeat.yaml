@@ -1,0 +1,27 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: login-heartbeat
+  namespace: workshop-day2-solutions
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    metadata:
+      name: login-heartbeat
+    spec:
+      template:
+        metadata:
+          name: login-heartbeat
+        spec:
+          restartPolicy: Never
+          containers:
+           - name: hearbeater
+             image: alpine:3.8
+             command: ["/bin/sh", "-c", "echo $(cat /run/secret/username) has logged into $(cat /run/secret/endpoint)"]
+             volumeMounts:
+              - name: pretty-secret-config-volume
+                mountPath: /run/secret/
+          volumes:
+           - name: pretty-secret-config-volume
+             secret:
+               secretName: pretty-secret-config

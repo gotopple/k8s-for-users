@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: volume-mount-explorer
+  namespace: workshop-day2-solutions
+spec:
+  template:
+    metadata:
+      name: volume-mount-explorer
+    spec:
+      restartPolicy: OnFailure
+      containers:
+       - name: explorer
+         image: alpine:3.8
+         command: ["/bin/sh", "-c", "ls -al /etc/not-secret; cat /etc/not-secret/username"]
+         volumeMounts:
+          - name: not-secret-config
+            mountPath: /etc/not-secret
+      volumes:
+       - name: not-secret-config
+         configMap:
+           name: not-secret-config
