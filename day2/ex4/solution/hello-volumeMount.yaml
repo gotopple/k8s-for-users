@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello-environment
+  namespace: workshop-day2-solutions
+spec:
+  template:
+    metadata:
+      name: hello-environemnt
+    spec:
+      restartPolicy: OnFailure
+      containers:
+       - name: pinger
+         image: alpine:3.8
+         command: ["ping","google.com"]

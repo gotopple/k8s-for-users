@@ -1,1 +1,1 @@
-# Day 2 Exercise 2
+# Day 2 Exercise 1
