@@ -7,6 +7,9 @@ spec:
   template:
     metadata:
       name: ping-google
+      labels:
+              app: ping
+              target: google
     spec:
       restartPolicy: OnFailure
       containers:
