@@ -34,5 +34,5 @@ See [Day 2 Exercises](./day2)
 
 ## Copyright
 
-&copy; Topple 2018
+&copy; Topple 2018 - 2020
 
