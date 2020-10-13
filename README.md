@@ -24,6 +24,8 @@ See [prerequisites.md](./prerequisites.md)
 
 Do you need a [YAML Primer](./YAML_Primer.md)?
 
+What is Kubernetes? It is a Database! [Learn the absolute basics while you learn why you can think of Kubernetes as a Database.](./introduction)
+
 See [Day 1 Exercises](./day1)
 
 ## Day 2
